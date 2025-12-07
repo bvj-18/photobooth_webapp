@@ -5,6 +5,7 @@ import { FilmFlicker } from "../components/FilmFlicker";
 import { FilmArtifacts } from "../components/FilmArtifacts";
 
 type FilterType = 'none' | 'grayscale(100%)' | 'sepia(100%)' | 'invert(100%)' | 'blur(3px)' | 'contrast(200%)';
+type TimerType = 'off' | '3' | '5' | '10';
 
 export default function CameraPage() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export default function CameraPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [filter, setFilter] = useState<FilterType>('none');
+  const [timer, setTimer] = useState<TimerType>('off');
+  const [countdown, setCountdown] = useState<number | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [showFlash, setShowFlash] = useState(false);
 
@@ -43,7 +46,7 @@ export default function CameraPage() {
     };
   }, []);
 
-  const capturePhoto = () => {
+  const takePicture = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
@@ -67,6 +70,28 @@ export default function CameraPage() {
     // Get image data
     const imageData = canvas.toDataURL('image/png');
     setCapturedImage(imageData);
+    setCountdown(null);
+  };
+
+  const capturePhoto = () => {
+    if (timer === 'off') {
+      takePicture();
+    } else {
+      // Start countdown
+      const seconds = parseInt(timer);
+      setCountdown(seconds);
+      
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            takePicture();
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
   };
 
   const retakePhoto = () => {
@@ -118,14 +143,24 @@ export default function CameraPage() {
         <div className="relative mx-auto mb-6 max-w-2xl">
           <div className="relative bg-[#2d1810] p-2 md:p-4 rounded-lg border-4 border-[#4a3828] shadow-2xl">
             {!capturedImage ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-auto rounded"
-                style={{ filter }}
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-auto rounded"
+                  style={{ filter }}
+                />
+                {/* Countdown overlay */}
+                {countdown !== null && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded">
+                    <div className="text-[#ffe8b3] text-9xl font-bold animate-pulse">
+                      {countdown}
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <img
                 src={capturedImage}
@@ -136,22 +171,39 @@ export default function CameraPage() {
           </div>
         </div>
 
-        {/* Filter selection */}
+        {/* Filter and Timer selection */}
         {!capturedImage && (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-            <label className="text-[#f5e6d3] text-sm tracking-wider">Choose Filter:</label>
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as FilterType)}
-              className="px-4 py-2 bg-[#4a3828] text-[#f5e6d3] rounded border-2 border-[#2d1810] focus:outline-none focus:border-[#ffe8b3] tracking-wide"
-            >
-              <option value="none">None</option>
-              <option value="grayscale(100%)">Grayscale</option>
-              <option value="sepia(100%)">Sepia</option>
-              <option value="invert(100%)">Invert</option>
-              <option value="blur(3px)">Blur</option>
-              <option value="contrast(200%)">High Contrast</option>
-            </select>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-6 flex-wrap">
+            <div className="flex items-center gap-3">
+              <label className="text-[#f5e6d3] text-sm tracking-wider">Choose Filter:</label>
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as FilterType)}
+                className="px-4 py-2 bg-[#4a3828] text-[#f5e6d3] rounded border-2 border-[#2d1810] focus:outline-none focus:border-[#ffe8b3] tracking-wide"
+              >
+                <option value="none">None</option>
+                <option value="grayscale(100%)">Grayscale</option>
+                <option value="sepia(100%)">Sepia</option>
+                <option value="invert(100%)">Invert</option>
+                <option value="blur(3px)">Blur</option>
+                <option value="contrast(200%)">High Contrast</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="text-[#f5e6d3] text-sm tracking-wider">Timer:</label>
+              <select
+                value={timer}
+                onChange={(e) => setTimer(e.target.value as TimerType)}
+                disabled={countdown !== null}
+                className="px-4 py-2 bg-[#4a3828] text-[#f5e6d3] rounded border-2 border-[#2d1810] focus:outline-none focus:border-[#ffe8b3] tracking-wide disabled:opacity-50"
+              >
+                <option value="off">Off</option>
+                <option value="3">3 sec</option>
+                <option value="5">5 sec</option>
+                <option value="10">10 sec</option>
+              </select>
+            </div>
           </div>
         )}
 
@@ -167,9 +219,10 @@ export default function CameraPage() {
           {!capturedImage ? (
             <button
               onClick={capturePhoto}
-              className="px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-sm font-semibold shadow-lg"
+              disabled={countdown !== null}
+              className="px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              📸 Capture Photo
+              📸 {countdown !== null ? 'Starting...' : 'Capture Photo'}
             </button>
           ) : (
             <>
