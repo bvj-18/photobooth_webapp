@@ -62,6 +62,12 @@ h1 {
   100% { transform: translateX(-50%); }
 }
 
+@keyframes flash {
+  0% { opacity: 1; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .animate-flicker {
   animation: flicker 0.3s infinite;
 }
@@ -76,4 +82,8 @@ h1 {
 
 .film-roll-horizontal {
   animation: filmRollHorizontal 15s linear infinite;
+}
+
+.animate-flash {
+  animation: flash 0.2s ease-out forwards;
 }
