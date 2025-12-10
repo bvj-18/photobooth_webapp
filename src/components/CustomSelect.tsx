@@ -32,18 +32,18 @@ export function CustomSelect({ value, onChange, options, disabled = false, label
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <label className="text-[#f5e6d3] text-sm tracking-wider">{label}:</label>
-      <div ref={dropdownRef} className="relative">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <label className="text-[#f5e6d3] text-xs sm:text-sm tracking-wider whitespace-nowrap">{label}:</label>
+      <div ref={dropdownRef} className="relative w-full sm:w-auto">
         <button
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className="px-4 py-2 bg-[#4a3828] text-[#f5e6d3] rounded border-2 border-[#2d1810] focus:outline-none focus:border-[#ffe8b3] tracking-wide disabled:opacity-50 min-w-[140px] text-left flex items-center justify-between"
+          className="px-3 sm:px-4 py-2 bg-[#4a3828] text-[#f5e6d3] rounded border-2 border-[#2d1810] focus:outline-none focus:border-[#ffe8b3] tracking-wide disabled:opacity-50 min-w-[120px] sm:min-w-[140px] w-full sm:w-auto text-left flex items-center justify-between text-xs sm:text-sm"
         >
           <span>{selectedOption?.label}</span>
           <svg
-            className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -53,13 +53,13 @@ export function CustomSelect({ value, onChange, options, disabled = false, label
         </button>
 
         {isOpen && !disabled && (
-          <div className="absolute z-50 w-full bottom-full mb-1 bg-[#4a3828] border-2 border-[#2d1810] rounded shadow-xl overflow-hidden">
+          <div className="absolute z-50 w-full bottom-full mb-1 bg-[#4a3828] border-2 border-[#2d1810] rounded shadow-xl overflow-hidden max-h-48 overflow-y-auto">
             {options.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => handleSelect(option.value)}
-                className={`w-full px-4 py-2 text-left tracking-wide transition-colors ${
+                className={`w-full px-3 sm:px-4 py-2 text-left tracking-wide transition-colors text-xs sm:text-sm ${
                   option.value === value
                     ? 'bg-[#5a4838] text-[#ffe8b3]'
                     : 'bg-[#4a3828] text-[#f5e6d3] hover:bg-[#5a4838] hover:text-[#ffe8b3]'

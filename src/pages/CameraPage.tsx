@@ -1,12 +1,12 @@
 import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FilmStrip } from "../components/FilmStrip";
 import { FilmFlicker } from "../components/FilmFlicker";
 import { FilmArtifacts } from "../components/FilmArtifacts";
 import { CustomSelect } from "../components/CustomSelect";
 
 type FilterType = 'none' | 'grayscale(100%)' | 'sepia(100%)' | 'invert(100%)' | 'blur(3px)' | 'contrast(200%)';
 type TimerType = 'off' | '3' | '5' | '10';
+type PhotoCountType = '1' | '2' | '3' | '4';
 
 export default function CameraPage() {
   const navigate = useNavigate();
@@ -15,8 +15,11 @@ export default function CameraPage() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [filter, setFilter] = useState<FilterType>('none');
   const [timer, setTimer] = useState<TimerType>('off');
+  const [photoCount, setPhotoCount] = useState<PhotoCountType>('1');
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
 
   useEffect(() => {
@@ -70,42 +73,69 @@ export default function CameraPage() {
 
     // Get image data
     const imageData = canvas.toDataURL('image/png');
-    setCapturedImage(imageData);
+    
+    return imageData;
+  };
+
+  const captureMultiplePhotos = async (count: number) => {
+    const images: string[] = [];
+    
+    for (let i = 0; i < count; i++) {
+      setCurrentPhotoIndex(i + 1);
+      
+      // Only use timer if user selected one (not 'off')
+      if (timer !== 'off') {
+        const seconds = parseInt(timer);
+        setCountdown(seconds);
+        
+        await new Promise<void>(resolve => {
+          let remaining = seconds;
+          const interval = setInterval(() => {
+            remaining--;
+            setCountdown(remaining);
+            
+            if (remaining <= 0) {
+              clearInterval(interval);
+              setCountdown(null);
+              resolve();
+            }
+          }, 1000);
+        });
+      }
+      
+      // Take the photo
+      const image = takePicture();
+      if (image) {
+        images.push(image);
+      }
+    }
+    
+    setCapturedImages(images);
+    setIsCapturing(false);
+    setCurrentPhotoIndex(0);
     setCountdown(null);
   };
 
-  const capturePhoto = () => {
-    if (timer === 'off') {
-      takePicture();
-    } else {
-      // Start countdown
-      const seconds = parseInt(timer);
-      setCountdown(seconds);
-      
-      const interval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev === null || prev <= 1) {
-            clearInterval(interval);
-            takePicture();
-            return null;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+  const capturePhoto = async () => {
+    const count = parseInt(photoCount);
+    setIsCapturing(true);
+    await captureMultiplePhotos(count);
   };
 
   const retakePhoto = () => {
-    setCapturedImage(null);
+    setCapturedImages([]);
+    setCurrentPhotoIndex(0);
   };
 
   const downloadPhoto = () => {
-    if (!capturedImage) return;
+    if (capturedImages.length === 0) return;
 
-    const link = document.createElement('a');
-    link.href = capturedImage;
-    link.download = `vintage-photo-${Date.now()}.png`;
-    link.click();
+    capturedImages.forEach((image, index) => {
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `vintage-photo-${Date.now()}-${index + 1}.png`;
+      link.click();
+    });
   };
 
   const goBack = () => {
@@ -116,18 +146,12 @@ export default function CameraPage() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#1a0f0a] overflow-hidden flex items-center justify-center py-8">
+    <div className="relative w-full min-h-screen bg-[#1a0f0a] overflow-hidden flex items-center justify-center py-4 md:py-8 px-2 sm:px-4">
       {/* Flickering overlay effect */}
       <FilmFlicker />
 
       {/* Film artifacts (scratches, dust, lines) */}
       <FilmArtifacts />
-
-      {/* Film strip borders */}
-      <FilmStrip side="left" />
-      <FilmStrip side="right" />
-      <FilmStrip side="top" />
-      <FilmStrip side="bottom" />
 
       {/* Flash effect */}
       {showFlash && (
@@ -135,15 +159,15 @@ export default function CameraPage() {
       )}
 
       {/* Main content */}
-      <div className="relative z-40 w-full max-w-4xl px-4">
-        <h1 className="text-[#f5e6d3] text-center tracking-wide text-4xl md:text-5xl mb-6">
+      <div className="relative z-40 w-full max-w-4xl px-2 sm:px-4">
+        <h1 className="text-[#f5e6d3] text-center tracking-wide text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6">
           Vintage Photobooth
         </h1>
 
         {/* Camera/Photo frame */}
-        <div className="relative mx-auto mb-6 max-w-2xl">
-          <div className="relative bg-[#2d1810] p-2 md:p-4 rounded-lg border-4 border-[#4a3828] shadow-2xl">
-            {!capturedImage ? (
+        <div className="relative mx-auto mb-4 md:mb-6 w-full max-w-2xl">
+          <div className="relative bg-[#2d1810] p-2 md:p-4 rounded-lg border-2 md:border-4 border-[#4a3828] shadow-2xl">
+            {capturedImages.length === 0 ? (
               <>
                 <video
                   ref={videoRef}
@@ -155,26 +179,36 @@ export default function CameraPage() {
                 />
                 {/* Countdown overlay */}
                 {countdown !== null && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded">
-                    <div className="text-[#ffe8b3] text-9xl font-bold animate-pulse">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 rounded">
+                    <div className="text-[#ffe8b3] text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold animate-pulse">
                       {countdown}
                     </div>
+                    {currentPhotoIndex > 0 && (
+                      <div className="text-[#f5e6d3] text-xl sm:text-2xl md:text-3xl mt-4">
+                        Photo {currentPhotoIndex} of {photoCount}
+                      </div>
+                    )}
                   </div>
                 )}
               </>
             ) : (
-              <img
-                src={capturedImage}
-                alt="Captured"
-                className="w-full h-auto rounded"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                {capturedImages.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt={`Captured ${index + 1}`}
+                    className="w-full h-auto rounded"
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Filter and Timer selection */}
-        {!capturedImage && (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-6 flex-wrap">
+        {/* Filter, Timer and Photo Count selection */}
+        {capturedImages.length === 0 && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 sm:gap-6 mb-4 md:mb-6">
             <CustomSelect
               label="Choose Filter"
               value={filter}
@@ -193,7 +227,7 @@ export default function CameraPage() {
               label="Timer"
               value={timer}
               onChange={(value) => setTimer(value as TimerType)}
-              disabled={countdown !== null}
+              disabled={isCapturing}
               options={[
                 { value: 'off', label: 'Off' },
                 { value: '3', label: '3 sec' },
@@ -201,37 +235,50 @@ export default function CameraPage() {
                 { value: '10', label: '10 sec' }
               ]}
             />
+
+            <CustomSelect
+              label="Photo Count"
+              value={photoCount}
+              onChange={(value) => setPhotoCount(value as PhotoCountType)}
+              disabled={isCapturing}
+              options={[
+                { value: '1', label: '1' },
+                { value: '2', label: '2' },
+                { value: '3', label: '3' },
+                { value: '4', label: '4' }
+              ]}
+            />
           </div>
         )}
 
         {/* Controls */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4">
           <button
             onClick={goBack}
-            className="px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-sm font-semibold shadow-lg"
+            className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
           >
             ← Back
           </button>
 
-          {!capturedImage ? (
+          {capturedImages.length === 0 ? (
             <button
               onClick={capturePhoto}
-              disabled={countdown !== null}
-              className="px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isCapturing}
+              className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
-               {countdown !== null ? 'Starting...' : '˗ˏˋClickˎˊ˗'}
+               {isCapturing ? 'Capturing...' : '˗ˏˋClickˎˊ˗'}
             </button>
           ) : (
             <>
               <button
                 onClick={retakePhoto}
-                className="px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-sm font-semibold shadow-lg"
+                className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
               >
                 ⟳ Retake
               </button>
               <button
                 onClick={downloadPhoto}
-                className="px-8 py-3 bg-[#5a4838] hover:bg-[#6a5848] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-sm font-semibold shadow-lg"
+                className="px-6 sm:px-8 py-3 bg-[#5a4838] hover:bg-[#6a5848] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
               >
                 ⬇ Download
               </button>
