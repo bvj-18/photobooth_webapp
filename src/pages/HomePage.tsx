@@ -25,15 +25,15 @@ export default function HomePage() {
       <FilmStrip side="bottom" />
 
       {/* Main content area */}
-      <div className="relative z-40 text-center px-4">
-        <h1 className="text-[#f5e6d3] tracking-wide text-6xl md:text-7xl lg:text-8xl mb-4">
+      <div className="relative z-40 text-center px-4 sm:px-6 md:px-8">
+        <h1 className="text-[#f5e6d3] tracking-wide text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl mb-3 sm:mb-4 leading-tight">
           Vintage Photobooth
         </h1>
 
         {/* Capture button */}
         <button 
           onClick={handleCapture}
-          className="mt-12 px-10 py-4 bg-[#4a3828] hover:bg-[#5a4838] rounded-md text-[#f5e6d3] tracking-[0.3em] transition-all uppercase text-sm font-semibold shadow-lg hover:shadow-xl"
+          className="mt-6 sm:mt-8 md:mt-12 px-6 sm:px-8 md:px-10 py-3 sm:py-4 bg-[#4a3828] hover:bg-[#5a4838] active:bg-[#3a2818] rounded-md text-[#f5e6d3] tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl"
         >
           Capture Photo ❤︎
         </button>

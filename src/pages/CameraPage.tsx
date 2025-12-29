@@ -26,12 +26,12 @@ export default function CameraPage() {
 
   useEffect(() => {
     // Start webcam
-    navigator.mediaDevices.getUserMedia({ 
-      video: { 
+    navigator.mediaDevices.getUserMedia({
+      video: {
         width: { ideal: 1280 },
         height: { ideal: 720 },
         facingMode: 'user'
-      } 
+      }
     })
       .then(mediaStream => {
         setStream(mediaStream);
@@ -75,27 +75,27 @@ export default function CameraPage() {
 
     // Get image data
     const imageData = canvas.toDataURL('image/png');
-    
+
     return imageData;
   };
 
   const captureMultiplePhotos = async (count: number) => {
     const images: string[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       setCurrentPhotoIndex(i + 1);
-      
+
       // Only use timer if user selected one (not 'off')
       if (timer !== 'off') {
         const seconds = parseInt(timer);
         setCountdown(seconds);
-        
+
         await new Promise<void>(resolve => {
           let remaining = seconds;
           const interval = setInterval(() => {
             remaining--;
             setCountdown(remaining);
-            
+
             if (remaining <= 0) {
               clearInterval(interval);
               setCountdown(null);
@@ -104,14 +104,14 @@ export default function CameraPage() {
           }, 1000);
         });
       }
-      
+
       // Take the photo
       const image = takePicture();
       if (image) {
         images.push(image);
       }
     }
-    
+
     setCapturedImages(images);
     setIsCapturing(false);
     setCurrentPhotoIndex(0);
@@ -140,7 +140,7 @@ export default function CameraPage() {
         scale: 2,
         logging: false,
       });
-      
+
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
       link.download = `vintage-photobooth-${Date.now()}.png`;
@@ -165,7 +165,7 @@ export default function CameraPage() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#1a0f0a] overflow-hidden flex items-center justify-center py-4 md:py-8 px-2 sm:px-4">
+    <div className="relative w-full min-h-screen bg-[#1a0f0a] overflow-hidden flex items-center justify-center py-6 sm:py-8 md:py-10 px-3 sm:px-4 md:px-6">
       {/* Flickering overlay effect */}
       <FilmFlicker />
 
@@ -178,8 +178,8 @@ export default function CameraPage() {
       )}
 
       {/* Main content */}
-      <div className="relative z-40 w-full max-w-4xl px-2 sm:px-4">
-        <h1 className="text-[#f5e6d3] text-center tracking-wide text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6">
+      <div className="relative z-40 w-full max-w-4xl px-2 sm:px-4 md:px-6">
+        <h1 className="text-[#f5e6d3] text-center tracking-wide text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4 md:mb-6 leading-tight">
           Vintage Photobooth
         </h1>
 
@@ -211,9 +211,9 @@ export default function CameraPage() {
                 )}
               </>
             ) : (
-              <div ref={photoStripRef} className="relative bg-[#f5e6d3] p-6 rounded-lg shadow-xl max-w-sm mx-auto">
+              <div ref={photoStripRef} className="relative bg-[#f5e6d3] p-3 sm:p-4 md:p-6 rounded-lg shadow-xl w-full max-w-[280px] sm:max-w-xs md:max-w-sm mx-auto">
                 {/* Photos in vertical strip */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2 sm:gap-3">
                   {capturedImages.map((image, index) => (
                     <div key={index} className="relative bg-white p-1 shadow-sm">
                       <img
@@ -233,9 +233,9 @@ export default function CameraPage() {
                     placeholder="Add a note..."
                     rows={1}
                     className="w-full px-2 py-1 text-center bg-transparent border-none text-[#8B6914] placeholder-[#8B6914] placeholder-opacity-50 focus:outline-none font-serif italic text-base resize-none"
-                    style={{ 
-                      fontFamily: "'Playfair Display', serif", 
-                      color: '#8B6914', 
+                    style={{
+                      fontFamily: "'Playfair Display', serif",
+                      color: '#8B6914',
                       lineHeight: '1.5',
                       overflow: 'visible',
                       minHeight: '1.5em'
@@ -254,7 +254,7 @@ export default function CameraPage() {
 
         {/* Filter, Timer and Photo Count selection */}
         {capturedImages.length === 0 && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 sm:gap-6 mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4 md:gap-6 mb-3 sm:mb-4 md:mb-6">
             <CustomSelect
               label="Choose Filter"
               value={filter}
@@ -298,10 +298,10 @@ export default function CameraPage() {
         )}
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-2 sm:gap-3 md:gap-4">
           <button
             onClick={goBack}
-            className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
+            className="px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 bg-[#4a3828] hover:bg-[#5a4838] active:bg-[#3a2818] text-[#f5e6d3] rounded-md tracking-[0.15em] sm:tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
           >
             ← Back
           </button>
@@ -310,21 +310,21 @@ export default function CameraPage() {
             <button
               onClick={capturePhoto}
               disabled={isCapturing}
-              className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 bg-[#4a3828] hover:bg-[#5a4838] active:bg-[#3a2818] text-[#f5e6d3] rounded-md tracking-[0.15em] sm:tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
-               {isCapturing ? 'Capturing...' : '˗ˏˋClickˎˊ˗'}
+              {isCapturing ? 'Capturing...' : '˗ˏˋClickˎˊ˗'}
             </button>
           ) : (
             <>
               <button
                 onClick={retakePhoto}
-                className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
+                className="px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 bg-[#4a3828] hover:bg-[#5a4838] active:bg-[#3a2818] text-[#f5e6d3] rounded-md tracking-[0.15em] sm:tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
               >
                 ⟳ Retake
               </button>
               <button
                 onClick={downloadPhoto}
-                className="px-6 sm:px-8 py-3 bg-[#5a4838] hover:bg-[#6a5848] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
+                className="px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 bg-[#5a4838] hover:bg-[#6a5848] active:bg-[#4a3828] text-[#f5e6d3] rounded-md tracking-[0.15em] sm:tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
               >
                 ⬇ Download
               </button>
