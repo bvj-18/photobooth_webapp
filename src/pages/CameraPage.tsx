@@ -1,5 +1,8 @@
 import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { FilmFlicker } from "../components/FilmFlicker";
 import { FilmArtifacts } from "../components/FilmArtifacts";
 import { CustomSelect } from "../components/CustomSelect";
@@ -191,10 +194,30 @@ export default function CameraPage() {
         useCORS: true,
       });
 
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = `vintage-photobooth-${Date.now()}.png`;
-      link.click();
+      const dataUrl = canvas.toDataURL('image/png');
+
+      if (Capacitor.isNativePlatform()) {
+        // Native: save to device then open share sheet
+        const fileName = `vintage-photobooth-${Date.now()}.png`;
+        const saved = await Filesystem.writeFile({
+          path: fileName,
+          data: dataUrl,
+          directory: Directory.Cache,
+        });
+
+        await Share.share({
+          title: 'Vintage Photobooth',
+          text: 'Check out my vintage photo!',
+          url: saved.uri,
+          dialogTitle: 'Share your photo',
+        });
+      } else {
+        // Web: anchor-click download
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `vintage-photobooth-${Date.now()}.png`;
+        link.click();
+      }
 
       setIsDownloading(false);
     } catch (error) {

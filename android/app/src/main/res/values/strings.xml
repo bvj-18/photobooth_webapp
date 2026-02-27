@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Vintage Photobooth</string>
+    <string name="title_activity_main">Vintage Photobooth</string>
+    <string name="package_name">com.vintagephotobooth.app</string>
+    <string name="custom_url_scheme">com.vintagephotobooth.app</string>
+</resources>
