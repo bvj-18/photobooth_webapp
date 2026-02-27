@@ -257,12 +257,7 @@ export default function CameraPage() {
                       <img
                         src={image}
                         alt={`Captured ${index + 1}`}
-                        className="w-full h-auto"
-                        style={{ 
-                          maxHeight: capturedImages.length === 4 ? '100px' : 
-                                     capturedImages.length === 3 ? '115px' : 
-                                     capturedImages.length === 2 ? '140px' : '180px' 
-                        }}
+                        className="block w-full h-auto"
                       />
                     </div>
                   ))}
