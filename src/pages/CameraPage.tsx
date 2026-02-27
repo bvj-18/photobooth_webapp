@@ -7,6 +7,7 @@ import { CustomSelect } from "../components/CustomSelect";
 type FilterType = 'none' | 'grayscale(100%)' | 'sepia(100%)' | 'invert(100%)' | 'blur(3px)' | 'contrast(200%)';
 type TimerType = 'off' | '3' | '5' | '10';
 type PhotoCountType = '1' | '2' | '3' | '4';
+type CameraFacingType = 'user' | 'environment';
 
 export default function CameraPage() {
   const navigate = useNavigate();
@@ -25,35 +26,48 @@ export default function CameraPage() {
   const [customNote, setCustomNote] = useState('');
   const [showCharLimitWarning, setShowCharLimitWarning] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<CameraFacingType>('user');
   const textMeasureRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    // Start webcam
-    navigator.mediaDevices.getUserMedia({
-      video: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        facingMode: 'user'
-      }
-    })
-      .then(mediaStream => {
+    let activeStream: MediaStream | null = null;
+
+    const startWebcam = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: { ideal: cameraFacing }
+          }
+        });
+
+        activeStream = mediaStream;
         setStream(mediaStream);
+
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
         }
-      })
-      .catch(err => {
+      } catch (err) {
         console.error('Webcam error:', err);
-        alert('Unable to access webcam. Please grant camera permissions.');
-      });
 
-    // Cleanup
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        if (cameraFacing === 'environment') {
+          setCameraFacing('user');
+          return;
+        }
+
+        alert('Unable to access webcam. Please grant camera permissions.');
       }
     };
-  }, []);
+
+    startWebcam();
+
+    return () => {
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [cameraFacing]);
 
   const takePicture = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -72,10 +86,14 @@ export default function CameraPage() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    // Apply filter and draw (flip horizontally to match mirrored video)
+    // Apply filter and draw (mirror only for front camera)
     context.filter = filter;
-    context.translate(canvas.width, 0);
-    context.scale(-1, 1);
+
+    if (cameraFacing === 'user') {
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
+    }
+
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     // Reset transform
     context.setTransform(1, 0, 0, 1, 0, 0);
@@ -176,9 +194,8 @@ export default function CameraPage() {
   };
 
   const goBack = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
+    const currentStream = videoRef.current?.srcObject as MediaStream | null;
+    currentStream?.getTracks().forEach(track => track.stop());
     navigate('/');
   };
 
@@ -212,7 +229,10 @@ export default function CameraPage() {
                   playsInline
                   muted
                   className="w-full h-auto rounded"
-                  style={{ filter, transform: 'scaleX(-1)' }}
+                  style={{
+                    filter,
+                    transform: cameraFacing === 'user' ? 'scaleX(-1)' : 'none'
+                  }}
                 />
                 {/* Countdown overlay */}
                 {countdown !== null && (
@@ -374,6 +394,16 @@ export default function CameraPage() {
           >
             ← Back
           </button>
+
+          {capturedImages.length === 0 && (
+            <button
+              onClick={() => setCameraFacing(prev => prev === 'user' ? 'environment' : 'user')}
+              disabled={isCapturing}
+              className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+            >
+              ⇄ Flip Camera
+            </button>
+          )}
 
           {capturedImages.length === 0 ? (
             <button
