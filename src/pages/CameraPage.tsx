@@ -183,7 +183,7 @@ export default function CameraPage() {
   };
 
   return (
-    <div className="relative w-full h-screen bg-[#1a0f0a] overflow-hidden flex items-center justify-center py-2 px-2 sm:px-4">
+    <div className="relative w-full min-h-screen bg-[#1a0f0a] overflow-y-auto overflow-x-hidden flex items-start sm:items-center justify-center py-2 px-2 sm:px-4">
       {/* Flickering overlay effect */}
       <FilmFlicker />
 
