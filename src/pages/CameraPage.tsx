@@ -69,6 +69,16 @@ export default function CameraPage() {
     };
   }, [cameraFacing]);
 
+  useEffect(() => {
+    if (!videoRef.current || !stream) return;
+
+    if (videoRef.current.srcObject !== stream) {
+      videoRef.current.srcObject = stream;
+    }
+
+    videoRef.current.play().catch(() => {});
+  }, [stream, capturedImages.length]);
+
   const takePicture = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
