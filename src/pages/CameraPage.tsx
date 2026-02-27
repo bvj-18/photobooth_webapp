@@ -28,6 +28,7 @@ export default function CameraPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [cameraFacing, setCameraFacing] = useState<CameraFacingType>('user');
   const textMeasureRef = useRef<HTMLSpanElement>(null);
+  const pageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
@@ -156,6 +157,12 @@ export default function CameraPage() {
   const capturePhoto = async () => {
     const count = parseInt(photoCount);
     setIsCapturing(true);
+
+    // Scroll to top on mobile so the countdown / photos are visible
+    if (window.innerWidth < 640) {
+      pageContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     await captureMultiplePhotos(count);
   };
 
@@ -210,7 +217,7 @@ export default function CameraPage() {
   };
 
   return (
-    <div className="relative w-full bg-[#1a0f0a] overflow-x-hidden flex justify-center px-2 sm:px-4 min-h-screen overflow-y-auto items-start py-2 sm:h-screen sm:min-h-0 sm:overflow-y-hidden sm:items-center">
+    <div ref={pageContainerRef} className="relative w-full bg-[#1a0f0a] overflow-x-hidden flex justify-center px-2 sm:px-4 min-h-screen overflow-y-auto items-start py-2 sm:h-screen sm:min-h-0 sm:overflow-y-hidden sm:items-center">
       {/* Flickering overlay effect */}
       <FilmFlicker />
 
