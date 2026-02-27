@@ -241,11 +241,11 @@ export default function CameraPage() {
 
   return (
     <div ref={pageContainerRef} className="relative w-full bg-[#1a0f0a] overflow-x-hidden flex justify-center px-2 sm:px-4 min-h-screen overflow-y-auto items-start py-2 sm:h-screen sm:min-h-0 sm:overflow-y-hidden sm:items-center">
-      {/* Flickering overlay effect */}
-      <FilmFlicker />
+      {/* Flickering overlay effect — skip on native (WebView SVG issues) */}
+      {!Capacitor.isNativePlatform() && <FilmFlicker />}
 
       {/* Film artifacts (scratches, dust, lines) */}
-      <FilmArtifacts />
+      {!Capacitor.isNativePlatform() && <FilmArtifacts />}
 
       {/* Flash effect */}
       {showFlash && (
