@@ -12,7 +12,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative w-full h-screen bg-[#1a0f0a] overflow-hidden flex items-center justify-center">
+      <div className="relative w-full h-screen bg-[#1a0f0a] overflow-hidden flex items-center justify-center" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 60px)' }}>
       {/* Flickering overlay effect */}
       {!Capacitor.isNativePlatform() && <FilmFlicker />}
 
@@ -31,7 +31,7 @@ export default function HomePage() {
 
       {/* Main content area */}
       <div className="relative z-40 text-center px-4">
-        <h1 className="text-[#f5e6d3] tracking-wide text-6xl md:text-7xl lg:text-8xl mb-4">
+        <h1 className="text-[#f5e6d3] tracking-wide text-5xl md:text-7xl lg:text-8xl mb-4">
           Vintage Photobooth
         </h1>
 

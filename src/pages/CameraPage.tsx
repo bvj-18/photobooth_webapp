@@ -197,20 +197,16 @@ export default function CameraPage() {
       const dataUrl = canvas.toDataURL('image/png');
 
       if (Capacitor.isNativePlatform()) {
-        // Native: save to device then open share sheet
+        // Native: save directly to device storage
         const fileName = `vintage-photobooth-${Date.now()}.png`;
-        const saved = await Filesystem.writeFile({
-          path: fileName,
+        await Filesystem.writeFile({
+          path: `Download/${fileName}`,
           data: dataUrl,
-          directory: Directory.Cache,
+          directory: Directory.ExternalStorage,
+          recursive: true,
         });
 
-        await Share.share({
-          title: 'Vintage Photobooth',
-          text: 'Check out my vintage photo!',
-          url: saved.uri,
-          dialogTitle: 'Share your photo',
-        });
+        alert('Photo saved to Downloads!');
       } else {
         // Web: anchor-click download
         const link = document.createElement('a');
@@ -240,7 +236,7 @@ export default function CameraPage() {
   };
 
   return (
-    <div ref={pageContainerRef} className="relative w-full bg-[#1a0f0a] overflow-x-hidden flex justify-center px-2 sm:px-4 min-h-screen overflow-y-auto items-start py-2 sm:h-screen sm:min-h-0 sm:overflow-y-hidden sm:items-center">
+    <div ref={pageContainerRef} className="relative w-full bg-[#1a0f0a] overflow-x-hidden flex justify-center px-2 sm:px-4 min-h-screen overflow-y-auto items-start pb-2 sm:h-screen sm:min-h-0 sm:overflow-y-hidden sm:items-center" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}>
       {/* Flickering overlay effect — skip on native (WebView SVG issues) */}
       {!Capacitor.isNativePlatform() && <FilmFlicker />}
 
