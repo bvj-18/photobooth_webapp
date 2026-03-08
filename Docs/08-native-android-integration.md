@@ -125,6 +125,48 @@ cd android
 
 ---
 
+## Gradle Warnings & Performance Notes
+
+### 1) `Using flatDir should be avoided`
+
+This warning appears when Gradle uses a `flatDir` repository (local folder-based dependency lookup), which does not provide dependency metadata.
+
+For this project, unused `flatDir` and local `fileTree` jar entries were removed from:
+- `android/app/build.gradle`
+- `android/capacitor-cordova-android-plugins/build.gradle`
+
+If this warning appears again after plugin updates, check whether any plugin reintroduced `flatDir` and remove it when no local `.jar/.aar` files are required.
+
+### 2) `Build time dedicated to garbage collection`
+
+This is informational, but frequent GC can slow builds. The project heap was increased in:
+- `android/gradle.properties`
+
+Current setting:
+
+```properties
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+```
+
+If your machine has sufficient RAM and builds are still memory-constrained, you can increase heap further (for example `-Xmx3072m`).
+
+### 3) Java Runtime Requirement for Android Gradle Plugin
+
+Android Gradle Plugin versions used by this project require Java 11+, and modern Android builds should use Java 17.
+
+If Gradle fails with messages like "This build uses a Java 8 JVM", set your JDK to 17:
+
+- In Android Studio: `File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK`
+- In terminal builds: ensure `JAVA_HOME` points to a JDK 17 installation
+
+Quick check:
+
+```bash
+java -version
+```
+
+---
+
 ## Vite Base Path
 
 The Vite configuration uses a relative base path:
