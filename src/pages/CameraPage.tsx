@@ -31,6 +31,7 @@ export default function CameraPage() {
   const [cameraFacing, setCameraFacing] = useState<CameraFacingType>('user');
   const textMeasureRef = useRef<HTMLSpanElement>(null);
   const pageContainerRef = useRef<HTMLDivElement>(null);
+  const railSlots = Array.from({ length: 18 }, (_, i) => i);
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
@@ -162,7 +163,7 @@ export default function CameraPage() {
 
     // Scroll to top on mobile so the countdown / photos are visible
     if (window.innerWidth < 640) {
-      pageContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     await captureMultiplePhotos(count);
@@ -291,8 +292,14 @@ export default function CameraPage() {
     navigate('/');
   };
 
+  const isResultView = capturedImages.length > 0;
+
   return (
-    <div ref={pageContainerRef} className="relative w-full bg-[#1a0f0a] overflow-x-hidden flex justify-center px-2 sm:px-4 min-h-screen overflow-y-auto items-start pb-2 sm:h-screen sm:min-h-0 sm:overflow-y-hidden sm:items-center" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}>
+    <div
+      ref={pageContainerRef}
+      className={`relative w-full bg-[#1a0f0a] overflow-x-hidden flex justify-center px-2 sm:px-4 min-h-screen ${isResultView ? 'items-start pb-4' : 'items-center py-2'}`}
+      style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}
+    >
       {/* Flickering overlay effect — skip on native (WebView SVG issues) */}
       {!Capacitor.isNativePlatform() && <FilmFlicker />}
 
@@ -341,87 +348,142 @@ export default function CameraPage() {
                 )}
               </>
             ) : (
-              <div ref={photoStripRef} className="relative bg-[#f5e6d3] p-2 sm:p-3 pb-3 sm:pb-4 rounded-lg shadow-xl w-[240px] sm:w-[280px] md:w-[320px] mx-auto">
-                {/* Photos in vertical strip */}
-                <div className="flex flex-col gap-1.5">
-                  {capturedImages.map((image, index) => (
-                    <div key={index} className="relative bg-white p-0.5 shadow-sm">
-                      <img
-                        src={image}
-                        alt={`Captured ${index + 1}`}
-                        className="block w-full h-auto"
+              <div
+                ref={photoStripRef}
+                className="relative mx-auto"
+                style={{
+                  width: 'clamp(256px, 80vw, 340px)',
+                  backgroundColor: '#2d1810',
+                  borderRadius: '3px',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.03)',
+                  padding: '10px 0',
+                }}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: '20px 1fr 20px' }}>
+                  {/* Left film rail */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', padding: '2px 0' }}>
+                    {railSlots.map((slot) => (
+                      <div
+                        key={`left-slot-${slot}`}
+                        style={{
+                          width: '10px',
+                          height: '12px',
+                          borderRadius: '2px',
+                          backgroundColor: '#f5e6d3',
+                          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 0.5px #4a3828',
+                        }}
                       />
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                {/* Custom note input */}
-                <div className="mt-3 text-center pb-4 overflow-visible relative">
-                  {/* Hidden span to measure text width */}
-                  <span
-                    ref={textMeasureRef}
-                    className="absolute invisible whitespace-nowrap px-2 font-serif italic text-base"
-                    style={{ fontFamily: "'Playfair Display', serif" }}
-                    aria-hidden="true"
+                  {/* Center photo area */}
+                  <div
+                    style={{
+                      backgroundColor: '#f5e6d3',
+                      padding: '8px 8px 12px',
+                      borderLeft: '1px solid #1a0c08',
+                      borderRight: '1px solid #1a0c08',
+                      position: 'relative',
+                    }}
                   >
-                    {customNote || 'M'}
-                  </span>
-
-                  {/* Show static text during download, input during normal use */}
-                  {isDownloading ? (
-                    <p
-                      className="w-full px-2 py-2 text-center font-serif italic text-base"
-                      style={{
-                        fontFamily: "'Playfair Display', serif",
-                        color: '#8B6914',
-                        lineHeight: '1.6',
-                        margin: 0,
-                        minHeight: '1.6em'
-                      }}
-                    >
-                      {customNote || '\u00A0'}
-                    </p>
-                  ) : (
-                    <input
-                      type="text"
-                      value={customNote}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        // Check if text would overflow using the hidden span
-                        if (textMeasureRef.current) {
-                          const containerWidth = e.target.offsetWidth - 16; // Account for padding
-                          textMeasureRef.current.textContent = newValue;
-                          const textWidth = textMeasureRef.current.offsetWidth;
-
-                          if (textWidth > containerWidth && newValue.length > customNote.length) {
-                            // Text would overflow, show warning and prevent
-                            setShowCharLimitWarning(true);
-                            setTimeout(() => setShowCharLimitWarning(false), 2000);
-                            return;
-                          }
-                        }
-                        setShowCharLimitWarning(false);
-                        setCustomNote(newValue);
-                      }}
-                      placeholder="Add a note..."
-                      className="w-full px-2 py-1 text-center bg-transparent border-none text-[#8B6914] placeholder-[#8B6914] placeholder-opacity-50 focus:outline-none font-serif italic text-base"
-                      style={{
-                        fontFamily: "'Playfair Display', serif",
-                        color: '#8B6914',
-                        lineHeight: '1.5'
-                      }}
-                    />
-                  )}
-
-                  {/* Character limit warning */}
-                  {showCharLimitWarning && !isDownloading && (
-                    <div
-                      className="absolute left-1/2 -translate-x-1/2 -bottom-6 text-xs text-red-600 bg-red-50 px-2 py-1 rounded shadow-sm whitespace-nowrap animate-pulse"
-                      style={{ fontFamily: 'sans-serif', fontStyle: 'normal' }}
-                    >
-                      Can't add more characters ✋
+                    {/* Photos in vertical strip */}
+                    <div className="flex flex-col gap-1.5">
+                      {capturedImages.map((image, index) => (
+                        <div key={index} className="relative bg-white p-0.5 shadow-sm">
+                          <img
+                            src={image}
+                            alt={`Captured ${index + 1}`}
+                            className="block w-full h-auto"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  )}
+
+                    {/* Custom note input */}
+                    <div className="mt-3 text-center pb-4 overflow-visible relative">
+                      {/* Hidden span to measure text width */}
+                      <span
+                        ref={textMeasureRef}
+                        className="absolute invisible whitespace-nowrap px-2 font-serif italic text-base"
+                        style={{ fontFamily: "'Playfair Display', serif" }}
+                        aria-hidden="true"
+                      >
+                        {customNote || 'M'}
+                      </span>
+
+                      {/* Show static text during download, input during normal use */}
+                      {isDownloading ? (
+                        <p
+                          className="w-full px-2 py-2 text-center font-serif italic text-base"
+                          style={{
+                            fontFamily: "'Playfair Display', serif",
+                            color: '#8B6914',
+                            lineHeight: '1.6',
+                            margin: 0,
+                            minHeight: '1.6em'
+                          }}
+                        >
+                          {customNote || '\u00A0'}
+                        </p>
+                      ) : (
+                        <input
+                          type="text"
+                          value={customNote}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            // Check if text would overflow using the hidden span
+                            if (textMeasureRef.current) {
+                              const containerWidth = e.target.offsetWidth - 16; // Account for padding
+                              textMeasureRef.current.textContent = newValue;
+                              const textWidth = textMeasureRef.current.offsetWidth;
+
+                              if (textWidth > containerWidth && newValue.length > customNote.length) {
+                                // Text would overflow, show warning and prevent
+                                setShowCharLimitWarning(true);
+                                setTimeout(() => setShowCharLimitWarning(false), 2000);
+                                return;
+                              }
+                            }
+                            setShowCharLimitWarning(false);
+                            setCustomNote(newValue);
+                          }}
+                          placeholder="Add a note..."
+                          className="w-full px-2 py-1 text-center bg-transparent border-none text-[#8B6914] placeholder-[#8B6914] placeholder-opacity-50 focus:outline-none font-serif italic text-base"
+                          style={{
+                            fontFamily: "'Playfair Display', serif",
+                            color: '#8B6914',
+                            lineHeight: '1.5'
+                          }}
+                        />
+                      )}
+
+                      {/* Character limit warning */}
+                      {showCharLimitWarning && !isDownloading && (
+                        <div
+                          className="absolute left-1/2 -translate-x-1/2 -bottom-6 text-xs text-red-600 bg-red-50 px-2 py-1 rounded shadow-sm whitespace-nowrap animate-pulse"
+                          style={{ fontFamily: 'sans-serif', fontStyle: 'normal' }}
+                        >
+                          Can't add more characters ✋
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right film rail */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', padding: '2px 0' }}>
+                    {railSlots.map((slot) => (
+                      <div
+                        key={`right-slot-${slot}`}
+                        style={{
+                          width: '10px',
+                          height: '12px',
+                          borderRadius: '2px',
+                          backgroundColor: '#f5e6d3',
+                          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 0.5px #4a3828',
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

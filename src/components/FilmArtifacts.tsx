@@ -79,7 +79,7 @@ export function FilmArtifacts() {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
+    <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
       {/* Vertical scratches */}
       {scratches.map((scratch) => (
         <div

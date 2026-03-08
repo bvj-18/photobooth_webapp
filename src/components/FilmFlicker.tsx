@@ -22,7 +22,7 @@ export function FilmFlicker() {
     <>
       {/* Grain/noise overlay — CSS-only, works in Android WebView */}
       <div 
-        className="absolute inset-0 z-30 pointer-events-none film-grain"
+        className="fixed inset-0 z-30 pointer-events-none film-grain"
         style={{
           opacity: opacity,
           backgroundImage:
@@ -34,7 +34,7 @@ export function FilmFlicker() {
       
       {/* Vignette effect */}
       <div 
-        className="absolute inset-0 z-20 pointer-events-none"
+        className="fixed inset-0 z-20 pointer-events-none"
         style={{
           background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)',
         }}
@@ -42,7 +42,7 @@ export function FilmFlicker() {
       
       {/* Light flicker overlay */}
       <div 
-        className="absolute inset-0 z-25 pointer-events-none animate-flicker"
+        className="fixed inset-0 z-25 pointer-events-none animate-flicker"
         style={{
           background: 'rgba(255, 255, 255, 0.008)',
         }}
