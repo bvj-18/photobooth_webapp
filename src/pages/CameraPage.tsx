@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import { FilmFlicker } from "../components/FilmFlicker";
 import { FilmArtifacts } from "../components/FilmArtifacts";
 import { CustomSelect } from "../components/CustomSelect";
@@ -175,29 +174,64 @@ export default function CameraPage() {
     setCustomNote('');
   };
 
-  const downloadPhoto = async () => {
-    if (capturedImages.length === 0 || !photoStripRef.current) return;
+  const renderPhotoStripToBlob = async (): Promise<Blob> => {
+    if (!photoStripRef.current) {
+      throw new Error('Photo strip not found');
+    }
+
+    // Swap input to static text before capture so caret/focus styles are not exported.
+    setIsDownloading(true);
 
     try {
-      // Set downloading state to swap input for static text
-      setIsDownloading(true);
-
-      // Wait for React to re-render with static text
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const { default: html2canvas } = await import('html2canvas');
-      const element = photoStripRef.current;
-      const canvas = await html2canvas(element, {
+      const canvas = await html2canvas(photoStripRef.current, {
         backgroundColor: '#f5e6d3',
         scale: 2,
         logging: false,
         useCORS: true,
       });
 
-      const dataUrl = canvas.toDataURL('image/png');
+      const blob = await new Promise<Blob | null>(resolve => {
+        canvas.toBlob(resolve, 'image/png');
+      });
+
+      if (!blob) {
+        throw new Error('Unable to create image blob');
+      }
+
+      return blob;
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const blobToDataUrl = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+          return;
+        }
+
+        reject(new Error('Failed to read image data'));
+      };
+      reader.onerror = () => reject(new Error('Failed to read image data'));
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const downloadPhoto = async () => {
+    if (capturedImages.length === 0 || !photoStripRef.current) return;
+
+    try {
+      const blob = await renderPhotoStripToBlob();
 
       if (Capacitor.isNativePlatform()) {
         // Native: save directly to device storage
+        const dataUrl = await blobToDataUrl(blob);
         const fileName = `vintage-photobooth-${Date.now()}.png`;
         await Filesystem.writeFile({
           path: `Download/${fileName}`,
@@ -209,16 +243,15 @@ export default function CameraPage() {
         alert('Photo saved to Downloads!');
       } else {
         // Web: anchor-click download
+        const objectUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = dataUrl;
+        link.href = objectUrl;
         link.download = `vintage-photobooth-${Date.now()}.png`;
         link.click();
+        URL.revokeObjectURL(objectUrl);
       }
-
-      setIsDownloading(false);
     } catch (error) {
       console.error('Download failed:', error);
-      setIsDownloading(false);
       // Fallback: download individual images
       capturedImages.forEach((image, index) => {
         const link = document.createElement('a');
@@ -226,6 +259,29 @@ export default function CameraPage() {
         link.download = `vintage-photo-${Date.now()}-${index + 1}.png`;
         link.click();
       });
+    }
+  };
+
+  const copyPhotoToClipboard = async () => {
+    if (capturedImages.length === 0 || !photoStripRef.current) return;
+
+    if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+      alert('Image copy is not supported on this device/browser.');
+      return;
+    }
+
+    try {
+      const blob = await renderPhotoStripToBlob();
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob,
+        }),
+      ]);
+
+      alert('Photo copied to clipboard!');
+    } catch (error) {
+      console.error('Copy failed:', error);
+      alert('Unable to copy photo to clipboard.');
     }
   };
 
@@ -457,6 +513,12 @@ export default function CameraPage() {
                 className="px-6 sm:px-8 py-3 bg-[#5a4838] hover:bg-[#6a5848] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
               >
                 ⬇ Download
+              </button>
+              <button
+                onClick={copyPhotoToClipboard}
+                className="px-6 sm:px-8 py-3 bg-[#5a4838] hover:bg-[#6a5848] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
+              >
+                ⎘ Copy
               </button>
             </>
           )}
