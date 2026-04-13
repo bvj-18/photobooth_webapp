@@ -318,7 +318,7 @@ export default function CameraPage() {
         </h1>
 
         {/* Camera/Photo frame */}
-        <div className="relative mx-auto mb-2 md:mb-3 w-full max-w-3xl">
+        <div className="relative mx-auto mb-2 md:mb-3 w-full max-w-5xl">
           <div className="relative">
             {capturedImages.length === 0 ? (
               <>
@@ -536,10 +536,10 @@ export default function CameraPage() {
         )}
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4">
           <button
             onClick={goBack}
-            className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
+            className="px-4 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg"
           >
             ← Back
           </button>
@@ -558,7 +558,7 @@ export default function CameraPage() {
             <button
               onClick={capturePhoto}
               disabled={isCapturing}
-              className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="px-4 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isCapturing ? 'Capturing...' : '˗ˏˋClickˎˊ˗'}
             </button>
@@ -566,13 +566,13 @@ export default function CameraPage() {
             <>
               <button
                 onClick={retakePhoto}
-                className="px-6 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
+                className="px-4 sm:px-8 py-3 bg-[#4a3828] hover:bg-[#5a4838] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg"
               >
                 ⟳ Retake
               </button>
               <button
                 onClick={downloadPhoto}
-                className="px-6 sm:px-8 py-3 bg-[#5a4838] hover:bg-[#6a5848] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg w-full sm:w-auto"
+                className="px-4 sm:px-8 py-3 bg-[#5a4838] hover:bg-[#6a5848] text-[#f5e6d3] rounded-md tracking-[0.2em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg"
               >
                 ⬇ Download
               </button>
@@ -583,6 +583,7 @@ export default function CameraPage() {
                 ⎘ Copy
               </button>
             </>
+
           )}
         </div>
       </div>
