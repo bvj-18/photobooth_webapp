@@ -1,6 +1,6 @@
 # 01 — Application Overview
 
-## Purpose
+## Purpose -
 
 **Vintage Photobooth** is a web-based photobooth application that simulates the nostalgic experience of classic film photography. Users can capture single photos or multi-photo strips through their device camera, apply real-time visual filters, and download the result as a stylised film-strip image — complete with sprocket holes, grain, flicker, and scratches.
 
