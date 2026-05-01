@@ -72,3 +72,25 @@ src/
 
 - This app requires browser camera permission.
 - If webcam access fails, check browser permission settings and ensure no other app is locking the camera.
+
+## Authentication Setup
+
+The frontend now includes login and signup pages backed by a custom auth API.
+
+Set the backend base URL in a local environment file:
+
+```bash
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+Expected endpoints:
+
+- `POST /auth/login` with `{ email, password }`
+- `POST /auth/signup` with `{ name, email, password }`
+
+Expected response shape:
+
+- `{ user: { id?, name, email }, token }`
+- or `{ data: { user, token } }`
+
+If your backend uses a different response format, update `src/auth/authApi.ts` to map it.
