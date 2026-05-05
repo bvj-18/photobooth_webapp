@@ -80,7 +80,7 @@ The frontend now includes login and signup pages backed by a custom auth API.
 Set the backend base URL in a local environment file:
 
 ```bash
-VITE_API_BASE_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:5000
 ```
 
 Expected endpoints:

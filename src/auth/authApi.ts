@@ -1,6 +1,6 @@
 import type { AuthResponse, LoginInput, SignupInput, AuthSession } from './authTypes';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim() ?? '';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:5000';
 
 class AuthApiError extends Error {
   constructor(message: string, public status?: number) {
