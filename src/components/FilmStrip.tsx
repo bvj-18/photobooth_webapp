@@ -46,21 +46,21 @@ export function FilmStrip({ side }: FilmStripProps) {
   // Horizontal (top/bottom) film strips for mobile
   return (
     <div 
-      className={`md:hidden absolute left-0 ${side === 'top' ? 'top-0' : 'bottom-0'} w-full h-24 bg-[#2d1810] overflow-hidden z-20`}
+      className={`md:hidden absolute left-0 ${side === 'top' ? 'top-0' : 'bottom-0'} w-full h-14 sm:h-20 bg-[#2d1810] overflow-hidden z-20`}
       style={{
         boxShadow: side === 'top' 
-          ? 'inset 0 -10px 20px rgba(0,0,0,0.5)' 
-          : 'inset 0 10px 20px rgba(0,0,0,0.5)'
+          ? 'inset 0 -6px 14px rgba(0,0,0,0.45)' 
+          : 'inset 0 6px 14px rgba(0,0,0,0.45)'
       }}
     >
       <div className="film-roll-horizontal flex flex-row items-center h-full">
         {sprocketHoles.concat(sprocketHoles).map((_, index) => (
-          <div key={index} className="relative mx-6">
+          <div key={index} className="relative mx-4 sm:mx-6">
             {/* Sprocket hole glow effect */}
             <div className="absolute inset-0 bg-[#ffe8b3] blur-md opacity-60"></div>
             
             {/* Sprocket hole */}
-            <div className="relative w-16 h-20 bg-gradient-to-r from-[#fff5d6] via-[#ffe8b3] to-[#ffd98a] rounded-sm border-2 border-[#4a3828] flex flex-col">
+            <div className="relative w-12 h-14 sm:w-16 sm:h-20 bg-gradient-to-r from-[#fff5d6] via-[#ffe8b3] to-[#ffd98a] rounded-sm border border-[#4a3828] flex flex-col">
               {/* Divider line in middle */}
               <div className="flex-1 border-b border-[#4a3828]"></div>
               <div className="flex-1"></div>
