@@ -1,269 +1,479 @@
-# Vintage Photobooth 📸🎞️
+# Vintage Photobooth
 
-A professional, retro-themed, cross-platform web application that simulates the nostalgic experience of a classic 35mm analog photobooth. The project features a responsive React + TypeScript frontend, a custom camera sequencer with vintage overlay animations, a Node.js/Express authentication API, and is wrapped with Capacitor for native Android integration.
+Vintage Photobooth is a full-stack web application that recreates the look and feel of a classic analog photobooth. Users can open the landing page, sign in or create an account, capture one to four webcam photos, apply vintage filters, add a handwritten-style note, and download the result as a film-strip PNG.
 
-Designed as a modern portfolio project showcasing full-stack integration, client-side media capture, native platform compilation, and aesthetic web design.
+The project is built with React, TypeScript, and Vite on the frontend, Express and MongoDB on the backend, JWT-based authentication for sessions, and Capacitor for Android packaging.
 
----
+## Overview
 
-## 🚀 Key Features (Implemented)
+The application is designed around a simple photo-booth flow:
 
-### Frontend (Client App)
-*   **Live View Mirroring & Filters**: Renders the webcam stream via the HTML5 MediaDevices API, mirroring the front-facing camera naturally and displaying real-time visual filter previews (`Grayscale`, `Sepia`, `Invert`, `Blur`, and `High Contrast`).
-*   **Sequenced Capture & Flash**: Captures 1 to 4 photos sequentially. Features a configurable delay timer (off, 3s, 5s, 10s) with on-screen countdown pulsing overlays and a full-screen white-out camera flash transition.
-*   **Aesthetic Film Strip Layout**: Automatically arranges captures inside a 3-column CSS Grid frame styled as a 35mm film strip, complete with light-reflecting sprocket-hole rails.
-*   **Smart Handwritten Note**: Enables adding a personal signature note in the classic `Playfair Display` serif font. Integrates an off-screen text measuring canvas to prevent characters from overflowing the physical strip bounds.
-*   **High-Fidelity Rendering**: Leverages `html2canvas` to render the DOM strip element into a high-resolution PNG, sanitizing input selectors and cursors before compilation.
-*   **Native & Web Exporting**:
-    *   *Web*: Triggers browser-native anchor downloads or copies the image blob directly to the clipboard.
-    *   *Android*: Writes files directly to the device's downloads folder using the Capacitor Filesystem API.
-*   **Responsive UI**: Optimized viewport layouts for mobile (horizontal film banners) and desktop (vertical strips).
+1. The user lands on a retro-themed home screen.
+2. The user can sign up or log in to store a session.
+3. The camera screen opens the device webcam.
+4. The user chooses a filter, timer, and photo count.
+5. The app captures the images and arranges them into a vintage strip.
+6. The user can add a custom note.
+7. The finished strip can be downloaded as a PNG or copied to the clipboard.
+8. On Android, the strip can also be written to device storage through Capacitor.
 
-### Backend (Auth API)
-*   **User Registration**: Creates accounts with validated names and unique email addresses, securing passwords in the database using salted hashes.
-*   **User Authentication**: Validates credentials and returns JWT session tokens to manage logged-in statuses.
-*   **Security Implementations**: Standardizes password hashing via `bcryptjs` and uses custom Express error and environment verification middleware to shield the server from startup and route exceptions.
+The frontend keeps the interface and camera workflow in the browser, while the backend handles account creation and login. MongoDB stores the user records, and JWTs are used to represent authenticated sessions.
 
----
+## Features
 
-## 🏗️ Architecture & Data Flow
+### Authentication Features
 
-The application is structured as a decoupled client-server architecture with a native platform bridge.
+- User signup with name, email, and password.
+- User login with email and password.
+- Session persistence through browser `localStorage`.
+- Logout support from the home screen.
+- Automatic session restoration on app load.
 
+### Camera Features
+
+- Live webcam preview using the browser camera API.
+- Front camera and rear camera toggle.
+- Optional countdown timer before capture.
+- Capture of 1, 2, 3, or 4 photos in sequence.
+- Flash effect during capture.
+
+### Photo Processing Features
+
+- Real-time preview filters: none, grayscale, sepia, invert, blur, and high contrast.
+- Film-strip layout for captured photos.
+- Handwritten-style custom note below the strip.
+- Text-width checking to prevent the note from overflowing.
+- PNG export using `html2canvas`.
+- Download of the full strip image.
+- Clipboard copy support for the rendered strip.
+- Fallback download of individual images if full export fails.
+
+### Mobile Features
+
+- Android support through Capacitor.
+- Native file saving on Android using the Capacitor Filesystem plugin.
+- WebView-specific performance adjustments that disable heavy overlays on native builds.
+
+### UI Features
+
+- Retro film aesthetic with warm tones and serif typography.
+- Animated grain, flicker, scratches, and dust overlays.
+- Decorative sprocket-hole film borders.
+- Responsive layout for desktop and mobile.
+- Vintage-styled login and signup screens.
+
+## Demo
+
+- Live Demo URL: Add your deployed URL here.
+- Screenshots: Add project screenshots here.
+- APK Download: Add the Android APK link here.
+- Demo Video: Add a demo video link here.
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | React + TypeScript + Vite + Tailwind CSS | Build the user interface, route between screens, and render the camera workflow. |
+| Backend | Node.js + Express | Serve the authentication API and connect to MongoDB. |
+| Database | MongoDB Atlas + Mongoose | Store user accounts and handle document validation. |
+| Authentication | JWT + bcryptjs | Sign sessions and hash passwords securely. |
+| Mobile | Capacitor + Android | Package the web app as a native Android application. |
+| Deployment | GitHub Actions Android APK workflow | Build and publish an Android debug APK artifact. No web deployment is configured in the repository yet. |
+
+## Architecture
+
+The project uses two connected paths:
+
+- Frontend -> Backend -> MongoDB
+- Frontend -> Capacitor -> Android
+
+```mermaid
+flowchart LR
+    A[React Frontend] --> B[Express Backend]
+    B --> C[(MongoDB Atlas)]
+    A --> D[Capacitor Native Bridge]
+    D --> E[Android App]
+    A --> F[html2canvas / Canvas Export]
+    A --> G[localStorage Session]
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                  FRONTEND (React Webview Client)             │
-│                                                              │
-│  [navigator.mediaDevices] ──► [HTML5 <video> / <canvas>]     │
-│                                           │                  │
-│                                  (Export Data URL)           │
-│                                           ▼                  │
-│                                   [capturedImages]           │
-│                                           │                  │
-│                                   (Render Strip)             │
-│                                           ▼                  │
-│                                     [html2canvas]            │
-│                                           │                  │
-│                                           ▼                  │
-│                                     [PNG Image]              │
-└───────────────────────────────────────────┬──────────────────┘
-                                            │
-                      ┌─────────────────────┴─────────────────────┐
-                      ▼ (Platform Check)                          ▼
-             [Capacitor Native Bridge]                    [Standard Browser]
-                      │                                           │
-             (Filesystem.writeFile)                      (URL.createObjectURL)
-                      │                                           │
-                      ▼                                           ▼
-          Android Downloads Storage                       User Local Download
+
+### How the pieces interact
+
+- The React frontend shows the UI and manages camera capture.
+- The Express backend handles signup and login requests.
+- MongoDB stores the user document data.
+- JWTs are returned by the backend after successful authentication.
+- The frontend stores the session information in `localStorage`.
+- Capacitor lets the same frontend run inside an Android WebView.
+- On Android, the filesystem plugin writes exported photo strips to device storage.
+
+## User Flow
+
+```mermaid
+flowchart TD
+    A[Landing Page] --> B[Login / Signup]
+    B --> C[Camera]
+    C --> D[Capture Photos]
+    D --> E[Apply Filters]
+    E --> F[Add Notes]
+    F --> G[Generate Strip]
+    G --> H[Download]
 ```
 
-### Key Architectural Decisions
-*   **HashRouter for Native Packaging**: The routing is driven by `HashRouter` instead of `BrowserRouter`. Since Capacitor serves assets locally via the `file://` protocol, hash-based URLs are essential to support client-side routing without server-side rewrite rules.
-*   **Platform-Targeted Performance Tuning**: The application uses platform detection (`Capacitor.isNativePlatform()`) to toggle processor-intensive DOM elements. Heavy decorative overlays—such as the real-time flickering filter (`<FilmFlicker />`), dust and scratch layers (`<FilmArtifacts />`), and animated border banners (`<FilmStrip />`)—are disabled inside native WebViews to guarantee smooth camera previews and prevent frame drops.
+In simple terms:
 
----
+1. The user opens the landing page.
+2. The user logs in or creates an account.
+3. The camera page opens.
+4. The user captures a sequence of photos.
+5. The user chooses a filter and capture timing.
+6. The user adds a note to the strip.
+7. The app generates the final film-strip image.
+8. The user downloads or copies the result.
 
-## 🔑 Authentication Flow
+## Folder Structure
 
+```text
+photobooth/
+├── src/                 # React frontend source code
+├── backend/             # Express API server
+├── android/             # Capacitor Android project
+├── Docs/                # Project documentation
+├── public/              # Static frontend assets such as fonts
+├── dist/                # Generated frontend build output
+├── node_modules/        # Installed npm packages
+├── package.json         # Frontend scripts and dependencies
+├── capacitor.config.ts   # Capacitor app configuration
+├── vite.config.ts       # Vite build configuration
+├── tailwind.config.js   # Tailwind CSS configuration
+├── postcss.config.js    # PostCSS configuration
+├── tsconfig.json        # TypeScript configuration
+└── index.html           # HTML entry point for the React app
 ```
-┌──────────────┐     POST /auth/signup     ┌──────────────┐
-│  Client App  │ ────────────────────────> │  Express API │
-│              │ <──────────────────────── │  (Node/Mongo)│
-└──────────────┘    JSON (User + Token)    └──────────────┘
-  │
-  ├─► Decodes JSON response
-  ├─► Persists token & user to localStorage ('photobooth.auth.session')
-  └─► Updates AuthContext state (isAuthenticated: true)
+
+### What each major folder contains
+
+- `src/`: The React application, including routing, pages, reusable UI components, auth logic, and global styling.
+- `backend/`: The Express server, MongoDB connection logic, authentication controller, route definitions, and Mongoose model.
+- `android/`: The generated Android project used by Capacitor to package the web app into a native app.
+- `Docs/`: Long-form documentation for the codebase, architecture, security, mobile integration, and learning resources.
+- `public/`: Static assets that Vite can serve directly, including the custom vintage fonts.
+- `dist/`: The production build output created by Vite. This folder is generated and should not be edited by hand.
+
+## Installation
+
+### Frontend
+
+1. Install dependencies from the repository root.
+
+```bash
+npm install
 ```
 
-1.  **Credentials Submission**: The user submits their email and password through the custom form views.
-2.  **Hashing & Database Query**:
-    *   *Registration*: The backend generates a salt, hashes the password via `bcryptjs`, writes the user document to MongoDB, and signs a JWT.
-    *   *Login*: The backend retrieves the user document by email, verifies the password against the stored hash, and signs a JWT.
-3.  **Token Signing**: The signed JWT contains the user's document ID and is signed using `JWT_SECRET` with an expiration duration of `7d`.
-4.  **Client-Side Persistence**: The API responds with the user profile object and token. The client [AuthContext.tsx](file:///c:/Users/Dell/OneDrive/Desktop/projects/photobooth/src/auth/AuthContext.tsx) captures the response, saves the session payload into browser `localStorage` under the key `photobooth.auth.session`, and updates the context state to set `isAuthenticated` to true.
-5.  **State Management**: `AuthContext` serves as the single source of truth, exposing login, signup, logout, user profile, token data, and authentication status (`loading`, `authenticated`, `anonymous`) to the rest of the application.
+2. Create a frontend environment file in the repository root.
 
----
-
-## 🛠️ API Reference
-
-### POST `/auth/signup`
-Creates a new user account.
-
-*   **Request Headers**: `Content-Type: application/json`
-*   **Request Body**:
-    ```json
-    {
-      "name": "Jane Doe",
-      "email": "jane@example.com",
-      "password": "securepassword123"
-    }
-    ```
-*   **Success Response** (`201 Created`):
-    ```json
-    {
-      "user": {
-        "id": "64bf1d0a5f973c1d94efb12a",
-        "name": "Jane Doe",
-        "email": "jane@example.com"
-      },
-      "token": "eyJhbGciOiJIUzI1NiIsIn..."
-    }
-    ```
-
-### POST `/auth/login`
-Authenticates an existing user.
-
-*   **Request Headers**: `Content-Type: application/json`
-*   **Request Body**:
-    ```json
-    {
-      "email": "jane@example.com",
-      "password": "securepassword123"
-    }
-    ```
-*   **Success Response** (`200 OK`): Matches the signup response structure.
-
----
-
-## ⚙️ Environment Variables
-
-### Frontend Setup
-Create a file named `.env.local` in the root directory:
 ```env
 VITE_API_BASE_URL=http://localhost:5000
 ```
 
-### Backend Setup
-Create a file named `.env` in the `backend/` directory:
+3. Start the frontend development server.
+
+```bash
+npm run dev
+```
+
+4. Open the local Vite URL shown in the terminal.
+
+### Backend
+
+1. Move into the backend folder.
+
+```bash
+cd backend
+```
+
+2. Install backend dependencies.
+
+```bash
+npm install
+```
+
+3. Create a `.env` file in `backend/`.
+
+4. Add the required environment variables.
+
 ```env
 PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster0.example.net/photobooth?retryWrites=true&w=majority
-JWT_SECRET=your_long_secure_random_jwt_secret_phrase
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_long_random_secret
 NODE_ENV=development
 ```
 
----
+5. Start the backend server.
 
-## 📂 Project Structure
-
-```
-photobooth/
-├── .github/workflows/
-│   └── build-apk.yml         # CI/CD pipeline for Android debug APK
-├── android/                      # Native Android project files (Capacitor)
-├── backend/                      # Node.js Express server root
-│   ├── config/
-│   │   └── db.js                 # MongoDB database link
-│   ├── controllers/
-│   │   └── authController.js     # Signup/login logic handlers
-│   ├── middleware/
-│   │   ├── errorMiddleware.js    # Express central error catchers
-│   │   └── validateEnv.js        # Server startup variable checking
-│   ├── models/
-│   │   └── User.js               # Mongoose User Schema
-│   ├── routes/
-│   │   └── authRoutes.js         # Express routes mapping
-│   ├── server.js                 # Express server entrypoint
-│   └── .env.example              # Backend environment template
-├── public/fonts/                 # Local Playfair Display font assets
-├── src/
-│   ├── auth/
-│   │   ├── AuthContext.tsx       # Auth provider and state context
-│   │   ├── authApi.ts            # Authentication HTTP requests handler
-│   │   └── authTypes.ts          # Authentication interfaces
-│   ├── components/
-│   │   ├── CustomSelect.tsx      # Vintage dropdown selector
-│   │   ├── FilmArtifacts.tsx     # Projector dust & scratch generator
-│   │   ├── FilmFlicker.tsx       # Grain overlay and vignetting
-│   │   └── FilmStrip.tsx         # Decorative movie borders
-│   ├── pages/
-│   │   ├── HomePage.tsx          # Main entry screen
-│   │   ├── CameraPage.tsx        # Camera workflow & results view
-│   │   ├── LoginPage.tsx         # Login view
-│   │   └── SignupPage.tsx        # Registration view
-│   ├── App.tsx                   # Page router mapping
-│   ├── index.css                 # Global styles and custom keyframe animations
-│   └── main.tsx                  # React root rendering mount
-├── capacitor.config.ts           # Capacitor config options
-├── tailwind.config.js            # Tailwind mappings configuration
-└── vite.config.ts                # Vite config setup with ngrok support
+```bash
+npm run dev
 ```
 
----
+### MongoDB Setup
 
-## ⚙️ Installation & Running
+1. Create a MongoDB Atlas cluster.
+2. Create a database user with a strong password.
+3. Add your development machine to the Network Access list in Atlas.
+4. Copy the Atlas connection string into `backend/.env` as `MONGO_URI`.
+5. Keep the connection string private and do not commit it to Git.
 
-### Prerequisites
-*   Node.js (v18+)
-*   MongoDB Atlas Account
-*   Android Studio (only required for compilation to Android)
+### Android Setup
 
-### Step 1: Set up the Backend
-1.  Navigate to the backend directory:
-    ```bash
-    cd backend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Configure your environment:
-    ```bash
-    cp .env.example .env
-    ```
-    Open `.env` and fill in your connection variables (`MONGO_URI` and `JWT_SECRET`).
-4.  Start the API in development mode:
-    ```bash
-    npm run dev
-    ```
-    The backend server will launch on `http://localhost:5000`.
+1. Build the frontend.
 
-### Step 2: Set up the Frontend
-1.  Navigate back to the project root directory:
-    ```bash
-    cd ..
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Set up the API connection environment:
-    ```bash
-    echo "VITE_API_BASE_URL=http://localhost:5000" > .env.local
-    ```
-4.  Launch the client development server:
-    ```bash
-    npm run dev
-    ```
-    Open the local address shown in your console (usually `http://localhost:5173`).
+```bash
+npm run build
+```
 
-### Step 3: Package to Android (Optional)
-1.  Compile the web code for production:
-    ```bash
-    npm run build
-    ```
-2.  Synchronize the compiled bundle with Capacitor's Android folder:
-    ```bash
-    npx cap sync android
-    ```
-3.  Open the project in Android Studio to run on an emulator or device:
-    ```bash
-    npx cap open android
-    ```
+2. Sync the web build into the Android project.
 
----
+```bash
+npx cap sync android
+```
 
-## 🔮 Future Enhancements (Roadmap)
+3. Open the native project in Android Studio.
 
-To elevate this project from its current staging phase to a production-ready system, the following features are planned for future development:
+```bash
+npx cap open android
+```
 
-*   **React Router Guards**: Implement validation barriers to restrict `/camera` routes, forcing redirection of anonymous visitors back to the login view.
-*   **Unified Password Constraints**: Standardize password length checks across both the client-side form validation (currently minimum 8 characters) and backend API validation (currently minimum 6 characters).
-*   **Secured Secrets Storage**: Replace hardcoded development keys committed inside the project root with standard runtime environment variables injected through host platforms.
-*   **Asset Storage Integration**: Connect the server to a cloud storage solution (e.g. AWS S3 or Cloudinary) and add a `Photo` database collection, allowing users to save their photo strips to the cloud and view a gallery of their saved photostrips.
-*   **Relative Path Fixes for Native Assets**: Convert absolute `/fonts/...` URLs in `index.css` to relative links so local fonts resolve seamlessly on the native Android WebView container under the `file://` protocol.
-*   **Android Runtime Permissions**: Update native components to verify and request permissions dynamically using Capacitor APIs before accessing the camera or filesystem.
-*   **Native Sharing**: Integrate Capacitor's share sheet utility to enable easy, direct sharing to WhatsApp, Instagram, or email.
+4. Run the app on an emulator or physical device from Android Studio.
+
+## Environment Variables
+
+### Frontend
+
+| Variable | Description |
+|---|---|
+| `VITE_API_BASE_URL` | Base URL used by the frontend to call the backend authentication API. |
+
+### Backend
+
+| Variable | Description |
+|---|---|
+| `MONGO_URI` | MongoDB connection string for Atlas or another MongoDB host. |
+| `JWT_SECRET` | Secret used to sign JWT tokens. |
+| `PORT` | Port the Express server listens on. |
+| `NODE_ENV` | Controls environment-specific behavior such as error output. |
+
+## API Documentation
+
+### `POST /auth/signup`
+
+Creates a new user account.
+
+Request body example:
+
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "securepassword123"
+}
+```
+
+Response example:
+
+```json
+{
+  "user": {
+    "id": "64bf1d0a5f973c1d94efb12a",
+    "name": "Jane Doe",
+    "email": "jane@example.com"
+  },
+  "token": "eyJhbGciOi..."
+}
+```
+
+Status codes:
+
+- `201 Created` on success.
+- `400 Bad Request` when input is missing or invalid.
+- `409 Conflict` when the email already exists.
+- `500 Internal Server Error` for unexpected failures.
+
+Example request:
+
+```bash
+curl -X POST http://localhost:5000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Jane Doe\",\"email\":\"jane@example.com\",\"password\":\"securepassword123\"}"
+```
+
+### `POST /auth/login`
+
+Authenticates an existing user.
+
+Request body example:
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "securepassword123"
+}
+```
+
+Response example:
+
+```json
+{
+  "user": {
+    "id": "64bf1d0a5f973c1d94efb12a",
+    "name": "Jane Doe",
+    "email": "jane@example.com"
+  },
+  "token": "eyJhbGciOi..."
+}
+```
+
+Status codes:
+
+- `200 OK` on success.
+- `400 Bad Request` when input is missing.
+- `401 Unauthorized` when credentials are invalid.
+- `500 Internal Server Error` for unexpected failures.
+
+Example request:
+
+```bash
+curl -X POST http://localhost:5000/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"jane@example.com\",\"password\":\"securepassword123\"}"
+```
+
+### `GET /`
+
+Health check endpoint.
+
+Request body: none.
+
+Response example:
+
+```json
+{ "message": "Auth API is running" }
+```
+
+Status codes:
+
+- `200 OK`
+
+## Authentication Flow
+
+The authentication flow is:
+
+User Login → Backend Validation → Password Comparison → JWT Generation → Token Storage → Authenticated Requests
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant M as MongoDB
+
+    U->>F: Submit login form
+    F->>B: POST /auth/login
+    B->>M: Find user by email
+    M-->>B: User document
+    B->>B: Compare password hash
+    B->>B: Generate JWT
+    B-->>F: User data + token
+    F->>F: Store session in localStorage
+```
+
+## Mobile Architecture
+
+```mermaid
+flowchart LR
+    A[React App] --> B[Vite Build]
+    B --> C[dist/]
+    C --> D[Capacitor Sync]
+    D --> E[Android Project]
+```
+
+## Security Considerations
+
+- Passwords are hashed with `bcryptjs` before being stored.
+- JWTs are signed on the backend with `JWT_SECRET`.
+- Environment variables keep secrets out of application code.
+- CORS is enabled on the backend so the frontend can call the API.
+- The frontend stores the session in `localStorage`, which is simple but not ideal for high-security production use.
+
+## Known Limitations
+
+- JWT is stored in `localStorage`.
+- No route guards are enforced yet.
+- No cloud photo storage exists yet.
+- Error handling is intentionally simple and limited to the current API and UI flows.
+- CORS is open rather than restricted to specific production origins.
+- There is no backend token refresh or revocation system.
+
+## Future Improvements
+
+### Security
+
+- Move auth storage to safer session handling.
+- Restrict CORS to approved origins.
+- Add protected routes and JWT verification middleware.
+- Add login rate limiting.
+
+### Features
+
+- Add user galleries.
+- Add photo sharing.
+- Add password reset.
+- Add stronger validation and user profile management.
+
+### Mobile
+
+- Add runtime permission prompts.
+- Improve Android storage handling for newer Android versions.
+- Add native sharing support.
+
+### Performance
+
+- Reduce heavy overlay work on low-end devices.
+- Optimize image export and rendering.
+- Lazy-load heavy browser-only libraries where helpful.
+
+### Scalability
+
+- Add cloud image storage.
+- Add a photo document model.
+- Add more backend endpoints for user content.
+
+## Lessons Learned
+
+This project demonstrates several core engineering concepts:
+
+- Full-stack development with a React frontend and Express backend.
+- Authentication with JWT and password hashing.
+- REST API design and request/response handling.
+- MongoDB integration through Mongoose.
+- Camera and canvas-based image capture in the browser.
+- Mobile packaging of a web app with Capacitor.
+
+## Resume Description
+
+### 1-line resume bullet
+
+Built a full-stack vintage photobooth web app with React, Express, MongoDB, JWT authentication, and Capacitor-based Android support.
+
+### 2-line resume bullet
+
+Developed a cross-platform photobooth application that captures webcam photos, applies vintage film effects, and exports downloadable photo strips. Implemented authentication, MongoDB-backed user storage, and Android packaging with Capacitor.
+
+### LinkedIn project description
+
+Vintage Photobooth is a full-stack React and Node.js project that recreates the experience of a retro analog photobooth. It includes webcam capture, vintage filters, customizable photo strips, JWT-based authentication, MongoDB user storage, and Android packaging through Capacitor.
+
+## License
+
+Licensed under the MIT License.
+
+You may add a `LICENSE` file with the standard MIT text before publishing the repository publicly.
