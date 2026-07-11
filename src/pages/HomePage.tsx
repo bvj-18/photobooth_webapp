@@ -41,15 +41,11 @@ export default function HomePage() {
 
       {/* Main content area */}
       <div className="relative z-40 w-full max-w-xl px-4 py-8 text-center sm:px-6 md:py-0 md:max-w-2xl">
-        <h1 className="text-[#f5e6d3] tracking-wide text-3xl sm:text-5xl md:text-7xl lg:text-8xl mb-3 leading-none">
+        <h1 className="text-[#f5e6d3] tracking-wide text-5xl sm:text-6xl md:text-7xl lg:text-8xl mb-3 leading-none">
           Vintage Photobooth
         </h1>
 
-        <p className="mx-auto mt-3 max-w-md text-[0.68rem] leading-6 sm:text-sm md:text-base text-[#d8c3ad] tracking-[0.14em] sm:tracking-[0.18em] uppercase px-2">
-          {user ? `Welcome back, ${user.name}` : 'Sign in to save your session or create a new account.'}
-        </p>
-
-        <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:mt-12 sm:flex-row sm:items-center sm:gap-4">
+        <div className="mt-8 flex w-full flex-col items-center justify-center gap-4 sm:mt-12">
           <button
             onClick={handleCapture}
             className="w-full sm:w-auto px-6 sm:px-10 py-3.5 bg-[#4a3828] hover:bg-[#5a4838] rounded-md text-[#f5e6d3] tracking-[0.18em] sm:tracking-[0.3em] transition-all uppercase text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl"
@@ -57,6 +53,27 @@ export default function HomePage() {
             Capture Photo ❤︎
           </button>
 
+        <p className="mx-auto mt-3 max-w-2xl text-[0.68rem] leading-6 sm:text-sm md:text-base text-[#d8c3ad] tracking-[0.14em] sm:tracking-[0.18em] uppercase px-2">
+          {user ? (
+  `Welcome back, ${user.name}`
+) : (
+  <>
+    {/* Mobile */}
+    <span className="sm:hidden">
+      Sign in to save your session
+      <br />
+      or create a new account.
+    </span>
+
+    {/* Tablet/Desktop */}
+    <span className="hidden sm:inline">
+      Sign in to save your session or create a new account.
+    </span>
+  </>
+)}
+        </p>
+
+          <div className="flex gap-4">
           <Link
             to="/login"
             className="w-full sm:w-auto px-8 py-3.5 border border-[#7a6048] text-[#f5e6d3] rounded-md tracking-[0.18em] sm:tracking-[0.25em] uppercase text-xs sm:text-sm font-semibold transition-all hover:bg-[#2a1b13]"
@@ -68,8 +85,9 @@ export default function HomePage() {
             to="/signup"
             className="w-full sm:w-auto px-8 py-3.5 border border-[#7a6048] text-[#f5e6d3] rounded-md tracking-[0.18em] sm:tracking-[0.25em] uppercase text-xs sm:text-sm font-semibold transition-all hover:bg-[#2a1b13]"
           >
-            Sign Up
+            SignUp
           </Link>
+          </div>
 
           {user ? (
             <button
