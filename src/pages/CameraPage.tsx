@@ -359,23 +359,8 @@ export default function CameraPage() {
                   padding: '10px 0',
                 }}
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '20px 1fr 20px' }}>
-                  {/* Left film rail */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', padding: '2px 0' }}>
-                    {railSlots.map((slot) => (
-                      <div
-                        key={`left-slot-${slot}`}
-                        style={{
-                          width: '10px',
-                          height: '12px',
-                          borderRadius: '2px',
-                          backgroundColor: '#f5e6d3',
-                          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 0.5px #4a3828',
-                        }}
-                      />
-                    ))}
-                  </div>
-
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr' }}>
+                
                   {/* Center photo area */}
                   <div
                     style={{
@@ -467,22 +452,6 @@ export default function CameraPage() {
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* Right film rail */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', padding: '2px 0' }}>
-                    {railSlots.map((slot) => (
-                      <div
-                        key={`right-slot-${slot}`}
-                        style={{
-                          width: '10px',
-                          height: '12px',
-                          borderRadius: '2px',
-                          backgroundColor: '#f5e6d3',
-                          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.45), 0 0 0 0.5px #4a3828',
-                        }}
-                      />
-                    ))}
                   </div>
                 </div>
               </div>

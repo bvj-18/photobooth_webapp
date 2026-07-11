@@ -72,7 +72,7 @@ export default function HomePage() {
   </>
 )}
         </p>
-
+        {!user &&(
           <div className="flex gap-4">
           <Link
             to="/login"
@@ -88,7 +88,8 @@ export default function HomePage() {
             SignUp
           </Link>
           </div>
-
+          )}
+          
           {user ? (
             <button
               onClick={handleLogout}
