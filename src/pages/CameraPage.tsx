@@ -31,7 +31,6 @@ export default function CameraPage() {
   const [cameraFacing, setCameraFacing] = useState<CameraFacingType>('user');
   const textMeasureRef = useRef<HTMLSpanElement>(null);
   const pageContainerRef = useRef<HTMLDivElement>(null);
-  const railSlots = Array.from({ length: 18 }, (_, i) => i);
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
